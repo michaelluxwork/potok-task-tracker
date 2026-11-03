@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% block title %}Новая доска — Поток{% endblock %}{% block content %}
+<a class="back-link" href="{% url 'boards' %}">← Все доски</a>
+<section class="page-heading"><div><h1>Новая доска</h1><p class="muted">Дайте проекту название. Остальное начнётся с первой задачи.</p></div></section>
+<section class="form-panel"><div class="sheet-heading"><span>Параметры проекта</span><span>↗</span></div><form method="post" class="stacked-form">{% csrf_token %}{% include 'form_fields.html' %}<p class="field-help">Вы станете руководителем этой доски и сможете добавить участников.</p><div class="form-actions"><button class="button primary">Создать доску</button><a class="button secondary" href="{% url 'boards' %}">Отмена</a></div></form></section>
+{% endblock %}

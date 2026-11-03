@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% block title %}{% if creating %}Новая задача{% else %}{{ task.title }}{% endif %} — Поток{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'board' board.id %}">← На доску «{{ board.name }}»</a>
+<section class="page-heading"><div>{% if not creating %}<span class="eyebrow">Задача / #{{ task.id|stringformat:'03d' }}</span>{% endif %}<h1>{% if creating %}Новая задача{% else %}{{ task.title }}{% endif %}</h1><p class="muted">{% if creating %}Что должно получиться, кто отвечает и к какому сроку.{% endif %}</p></div></section>
+<div class="task-detail-layout">
+  <section class="form-panel">
+  <div class="sheet-heading"><span>{% if creating %}Постановка задачи{% elif editable %}Редактирование{% else %}Просмотр{% endif %}</span><span>{% if creating %}→{% else %}#{{ task.id|stringformat:'03d' }}{% endif %}</span></div>
+  {% if editable %}<form class="task-form stacked-form" method="post">{% csrf_token %}{% include 'form_fields.html' %}<div class="form-actions"><button class="button primary">{% if creating %}Создать задачу{% else %}Сохранить изменения{% endif %}</button><a class="button secondary" href="{% url 'board' board.id %}">Отмена</a></div></form>
+  {% else %}<div class="readonly-task"><p class="task-description">{{ task.description|default:'Описание не добавлено.' }}</p><dl><div><dt>Статус</dt><dd class="task-status">{{ task.get_status_display }}</dd></div><div><dt>Приоритет</dt><dd>{{ task.get_priority_display }}</dd></div><div><dt>Исполнитель</dt><dd>{{ task.assignee.username|default:'Не назначен' }}</dd></div><div><dt>Срок</dt><dd>{{ task.due_date|date:'j E Y'|default:'Без срока' }}</dd></div></dl><p class="notice">{% if role == 'viewer' %}Вы наблюдатель: эта задача доступна для просмотра.{% else %}Менять эту задачу могут её исполнитель и руководитель доски.{% endif %}</p><a class="button secondary" href="{% url 'board' board.id %}">Вернуться на доску</a></div>{% endif %}
+  </section>
+  <aside class="task-aside">
+    <section><h2>{% if creating %}Доступ к задаче{% else %}О задаче{% endif %}</h2>{% if not creating %}<dl><dt>Создал</dt><dd>{{ task.creator.username }}</dd><dt>Добавлена</dt><dd>{{ task.created_at|date:'j E Y, H:i' }}</dd><dt>Последнее изменение</dt><dd>{{ task.updated_at|date:'j E, H:i' }}</dd></dl>{% endif %}<p>{% if role == 'manager' %}Вы руководитель. Можете менять задачи и назначать исполнителей на этой доске.{% elif role == 'member' %}Новые задачи назначаются вам. Изменять можно только назначенные вам задачи.{% else %}Вы наблюдатель. Можете видеть задачи и их текущий статус.{% endif %}</p></section>
+    {% if not creating and role == 'manager' %}<div class="danger-zone"><h3>Удалить задачу</h3><p>Задача и её описание будут удалены с доски.</p><form method="post" action="{% url 'task_delete' board.id task.id %}" class="delete-form">{% csrf_token %}<input type="hidden" name="version" value="{{ task.version }}"><label class="checkbox-label"><input type="checkbox" name="confirm" required>Подтверждаю удаление</label><button class="button danger" type="submit">Удалить задачу</button></form></div>{% endif %}
+  </aside>
+</div>
+{% endblock %}

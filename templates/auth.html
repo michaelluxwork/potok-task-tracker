@@ -1,0 +1,14 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}{% if signup %}Создать аккаунт{% else %}Вход{% endif %} — Поток{% endblock %}
+{% block content %}
+<div class="auth-layout">
+<a class="brand" href="{% url 'login' %}"><img src="{% static 'logo.svg' %}" alt="" width="38" height="38"><span>Поток</span></a>
+<section class="auth-card" aria-labelledby="auth-heading">
+<h1 id="auth-heading">{% if signup %}Создайте аккаунт{% else %}Войдите в Поток{% endif %}</h1>
+<p class="muted">{% if signup %}Чтобы создать доску или присоединиться к команде.{% else %}Ваши проекты и задачи — здесь.{% endif %}</p>
+<form method="post" class="stacked-form">{% csrf_token %}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}{% include 'form_fields.html' %}<button class="button primary full" type="submit">{% if signup %}Создать аккаунт{% else %}Войти в Поток{% endif %}</button></form>
+</section>
+<p class="auth-switch">{% if signup %}Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>{% else %}Нет аккаунта? <a href="{% url 'signup' %}">Создать аккаунт</a>{% endif %}</p>
+<p class="auth-note">{% if signup %}После регистрации передайте свой логин руководителю доски, чтобы получить доступ.{% else %}Доступ к доскам команды выдаёт их руководитель.{% endif %}</p>
+</div>
+{% endblock %}

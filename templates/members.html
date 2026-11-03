@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block title %}Участники — {{ board.name }} — Поток{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'board' board.id %}">← На доску «{{ board.name }}»</a>
+<section class="page-heading"><div><h1>Участники</h1><p class="muted">Люди, которые работают на этой доске, и их права.</p></div><span class="role-badge">{{ memberships|length }} в команде</span></section>
+<p id="members-scroll-help" class="scroll-hint table-scroll-hint">Прокрутите таблицу вправо, чтобы увидеть все столбцы. С клавиатуры — стрелками после выбора таблицы.</p>
+<section class="members-panel"><div class="table-scroll" role="region" tabindex="0" aria-label="Участники и роли" aria-describedby="members-scroll-help"><table class="members-table"><thead><tr><th scope="col">Участник</th><th scope="col">Роль на доске</th>{% if role == 'manager' %}<th scope="col">Действия</th>{% endif %}</tr></thead><tbody>
+{% for member in memberships %}<tr><td><div class="member-name"><span class="avatar">{{ member.user.username|first|upper }}</span><strong>{{ member.user.username }}</strong>{% if member.user_id == user.id %}<span class="muted">это вы</span>{% endif %}</div></td><td>
+{% if role == 'manager' %}<form class="role-form" method="post">{% csrf_token %}<input type="hidden" name="action" value="change"><input type="hidden" name="membership_id" value="{{ member.id }}"><label class="sr-only" for="role-{{ member.id }}">Роль {{ member.user.username }}</label><select id="role-{{ member.id }}" name="role">{% for value,label in roles %}<option value="{{ value }}"{% if value == member.role %} selected{% endif %}>{{ label }}</option>{% endfor %}</select><button class="button secondary compact">Сохранить</button></form>{% else %}<span class="role-badge">{{ member.get_role_display }}</span>{% endif %}
+</td>{% if role == 'manager' %}<td><form method="post" class="remove-member-form">{% csrf_token %}<input type="hidden" name="action" value="remove"><input type="hidden" name="membership_id" value="{{ member.id }}"><button class="text-button danger-text" aria-label="Убрать {{ member.user.username }} с доски">Убрать</button></form></td>{% endif %}</tr>{% endfor %}
+</tbody></table></div></section>
+<div class="members-bottom">
+{% if role == 'manager' %}<section class="form-panel"><div class="sheet-heading"><span>Добавить участника</span><span>＋</span></div><p class="muted">Попросите коллегу зарегистрироваться и передать вам свой логин.</p><form method="post" class="stacked-form">{% csrf_token %}<input type="hidden" name="action" value="add">{% include 'form_fields.html' %}<button class="button primary">Добавить на доску</button></form></section>{% endif %}
+<aside class="role-guide"><h2>Кто что может</h2><dl><div><dt>Руководитель</dt><dd>Управляет всеми задачами и составом команды.</dd></div><div><dt>Исполнитель</dt><dd>Создаёт задачи себе и меняет назначенные ему задачи.</dd></div><div><dt>Наблюдатель</dt><dd>Видит доску и детали задач, не вносит изменений.</dd></div></dl><p class="field-help">На доске всегда остаётся хотя бы один руководитель.</p></aside>
+</div>
+{% endblock %}

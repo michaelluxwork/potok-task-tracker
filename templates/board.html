@@ -1,0 +1,39 @@
+{% extends 'base.html' %}{% load static %}{% block title %}{{ board.name }} — Поток{% endblock %}
+{% block content %}
+<section class="page-heading board-heading">
+  <div><h1>{{ board.name }}</h1><p class="muted">{{ board.description }}</p><div class="board-meta"><span class="role-badge">{{ role_label }}</span><span class="meta-divider"></span><span>{{ done }} из {{ total }} задач готово</span></div></div>
+  <div class="heading-actions"><a class="button secondary" href="{% url 'members' board.id %}">Участники <span class="small-count">{{ memberships|length }}</span></a>{% if can_create %}<a class="button primary" href="{% url 'task_create' board.id %}"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#plus"></use></svg>Создать задачу</a>{% endif %}</div>
+</section>
+<div class="board-tabs"><span class="selected-tab"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#board"></use></svg>Канбан-доска</span><span class="board-hint">{% if role == 'viewer' %}Доступ для просмотра{% elif role == 'member' %}Вы можете менять назначенные вам задачи{% else %}Перетаскивайте задачи или меняйте статус в карточке{% endif %}</span></div>
+<form class="board-toolbar" method="get" aria-label="Фильтры задач">
+  <div class="search-field"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#search"></use></svg><label class="sr-only" for="task-search">Поиск задач</label><input id="task-search" name="q" type="search" value="{{ query }}" maxlength="100" placeholder="Найти задачу…"></div>
+  <div class="toolbar-filters"><label class="sr-only" for="scope">Показать задачи</label><select id="scope" name="scope"><option value="all"{% if scope == 'all' %} selected{% endif %}>Все задачи</option><option value="mine"{% if scope == 'mine' %} selected{% endif %}>Мои задачи</option></select><label class="sr-only" for="priority-filter">Приоритет</label><select id="priority-filter" name="priority"><option value="">Любой приоритет</option><option value="high"{% if priority == 'high' %} selected{% endif %}>Высокий</option><option value="normal"{% if priority == 'normal' %} selected{% endif %}>Обычный</option><option value="low"{% if priority == 'low' %} selected{% endif %}>Низкий</option></select><button class="button secondary compact">Показать</button>{% if query or scope != 'all' or priority %}<a class="reset-link" href="{% url 'board' board.id %}">Сбросить</a>{% endif %}</div>
+</form>
+{% if query or scope != 'all' or priority %}<p class="filter-result" role="status">Найдено задач: {{ shown }}. Всего на доске: {{ total }}.</p>{% endif %}
+<div id="move-error" class="notice error" role="alert" hidden></div>
+<p id="board-scroll-help" class="scroll-hint board-scroll-hint">Прокрутите доску вправо, чтобы увидеть все этапы. С клавиатуры — стрелками после выбора доски.</p>
+<div class="kanban-scroll" tabindex="0" aria-label="Доска задач" aria-describedby="board-scroll-help">
+  <div class="kanban" data-board="{{ board.id }}">
+  {% for column in columns %}
+    <section class="kanban-column status-{{ column.value }}" data-status="{{ column.value }}" aria-labelledby="column-{{ column.value }}">
+      <header class="column-heading"><h2 id="column-{{ column.value }}">{{ column.label }}<span class="column-count">{{ column.tasks|length }}</span></h2>{% if can_create %}<a class="column-add" aria-label="Создать задачу: {{ column.label }}" href="{% url 'task_create' board.id %}?status={{ column.value }}">＋</a>{% endif %}</header>
+      <div class="column-body">
+      {% for task in column.tasks %}
+        <article class="task-card priority-{{ task.priority }}" data-task-id="{{ task.id }}" data-version="{{ task.version }}" data-move-url="{% url 'task_move' board.id task.id %}"{% if task.editable %} draggable="true"{% endif %}>
+          <div class="task-card-top"><span class="task-id">#{{ task.id|stringformat:'03d' }}</span><span class="priority-label {{ task.priority }}">{% if task.priority == 'high' %}<span aria-hidden="true">↑</span>{% elif task.priority == 'low' %}<span aria-hidden="true">↓</span>{% else %}<span aria-hidden="true">−</span>{% endif %} {{ task.get_priority_display }}</span></div>
+          <h3><a href="{% url 'task' board.id task.id %}">{{ task.title }}</a></h3>
+          {% if task.description %}<p class="task-excerpt">{{ task.description|truncatechars:90 }}</p>{% endif %}
+          <div class="task-card-footer">
+            {% if task.due_date %}<span class="due-date{% if task.due_date < today and task.status != 'done' %} overdue{% endif %}"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#clock"></use></svg>{{ task.due_date|date:'j M' }}</span>{% else %}<span class="no-date">Без срока</span>{% endif %}
+            {% if task.assignee %}<span class="task-person" title="{{ task.assignee.username }}"><span class="avatar small">{{ task.assignee.username|first|upper }}</span><span>{{ task.assignee.username }}</span></span>{% else %}<span class="no-assignee">Не назначен</span>{% endif %}
+          </div>
+        </article>
+      {% empty %}<div class="column-empty"><span aria-hidden="true">—</span><p>{% if query or scope != 'all' or priority %}Нет задач по фильтру{% else %}Пока без задач{% endif %}</p></div>{% endfor %}
+      </div>
+      {% if can_create %}<a class="column-create" href="{% url 'task_create' board.id %}?status={{ column.value }}"><span aria-hidden="true">＋</span>Добавить задачу</a>{% endif %}
+    </section>
+  {% endfor %}
+  </div>
+</div>
+<p class="board-footnote">{% if can_create %}Чтобы изменить задачу с клавиатуры или телефона, откройте её карточку.{% else %}Откройте карточку, чтобы посмотреть детали задачи.{% endif %}</p>
+{% endblock %}

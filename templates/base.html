@@ -1,0 +1,28 @@
+{% load static %}<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eaf1f8"><title>{% block title %}Поток — задачи команды{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{% static 'logo.svg' %}">
+<link rel="preload" href="{% static 'fonts/InterVariable.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'bureau.css' %}"><script src="{% static 'app.js' %}" defer></script>
+</head><body><a class="skip-link" href="#main">К содержимому</a>
+<div class="app-shell{% if not user.is_authenticated %} auth-shell{% endif %}">
+{% if user.is_authenticated %}
+<header class="global-bar">
+<nav class="project-navigation" aria-label="Основная навигация">
+<a class="nav-link{% if not board %} active{% endif %}" href="{% url 'boards' %}">Все доски</a>
+<a class="nav-link add-board" href="{% url 'board_create' %}">＋ Новая доска</a>
+</nav>
+<a class="brand" href="{% url 'boards' %}"><img src="{% static 'logo.svg' %}" alt="" width="27" height="27"><span>Поток</span></a>
+<div class="profile"><span class="avatar">{{ user.username|first|upper }}</span><strong>{{ user.username }}</strong><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-button" title="Выйти" aria-label="Выйти из аккаунта"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#logout"></use></svg></button></form></div>
+</header>
+{% endif %}
+<div class="workspace">
+{% if user.is_authenticated %}<header class="topbar"><div class="sheet-breadcrumb"><a href="{% url 'boards' %}">Доски</a>{% if board %}<span class="breadcrumb-divider">›</span><a class="breadcrumb-current" href="{% url 'board' board.id %}">{{ board.name }}</a>{% else %}<span class="breadcrumb-divider">›</span><span>Все проекты</span>{% endif %}</div>{% if board %}<a class="team-nav" href="{% url 'members' board.id %}"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#people"></use></svg>Участники</a>{% endif %}</header>{% endif %}
+<main id="main" tabindex="-1">
+{% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<p class="notice {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+{% block content %}{% endblock %}
+</main>
+</div></div>
+<div id="live-status" class="sr-only" role="status" aria-live="polite"></div>
+</body></html>

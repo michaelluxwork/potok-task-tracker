@@ -1,0 +1,32 @@
+[Unit]
+Description=Potok curator review
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=potok-demo
+Group=potok-demo
+WorkingDirectory=/opt/potok-demo/current
+EnvironmentFile=/etc/potok-demo.env
+ExecStart=/opt/potok-demo/current/.venv/bin/python serve.py
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+MemoryHigh=128M
+MemoryMax=160M
+MemorySwapMax=64M
+CPUQuota=50%
+TasksMax=32
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/potok-demo
+UMask=0077
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=multi-user.target

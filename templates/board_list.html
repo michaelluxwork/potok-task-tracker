@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% load static %}{% block content %}
+<section class="page-heading"><div><h1>Ваши доски</h1><p class="muted">Все проекты, к которым у вас есть доступ.</p></div><a class="button primary" href="{% url 'board_create' %}"><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#plus"></use></svg>Создать доску</a></section>
+<div class="section-rule"><h2>Проекты</h2><span>{{ board_page.paginator.count }} всего</span></div>
+<div class="board-grid">
+{% for item in board_page %}
+<a class="board-card" href="{% url 'board' item.id %}">
+  <div class="board-card-top"><span class="board-number">Доска / {{ item.id|stringformat:'02d' }}</span><svg aria-hidden="true"><use href="{% static 'icons.svg' %}#arrow-up"></use></svg></div>
+  <h3>{{ item.name }}</h3><p>{{ item.description|default:'Все задачи проекта — здесь.' }}</p>
+  <div class="board-miniature" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div class="board-card-bottom"><span>{{ item.done_count }} из {{ item.task_count }} задач готово</span><span>{{ item.member_count }} в команде</span></div>
+</a>
+{% empty %}<section class="empty-state"><svg class="empty-symbol" aria-hidden="true"><use href="{% static 'icons.svg' %}#board"></use></svg><h2>Начните с первой доски</h2><p>Дайте проекту название и добавьте задачу.<br>Чтобы присоединиться к команде, передайте руководителю свой логин: <strong>{{ user.username }}</strong>.</p><a href="{% url 'board_create' %}" class="button primary">Создать первую доску</a></section>{% endfor %}
+</div>
+{% if board_page.has_other_pages %}<nav class="pagination" aria-label="Страницы досок">{% if board_page.has_previous %}<a class="button secondary" href="?page={{ board_page.previous_page_number }}">Назад</a>{% endif %}<span>{{ board_page.number }} из {{ board_page.paginator.num_pages }}</span>{% if board_page.has_next %}<a class="button secondary" href="?page={{ board_page.next_page_number }}">Далее</a>{% endif %}</nav>{% endif %}
+{% endblock %}
